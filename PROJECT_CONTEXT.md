@@ -67,6 +67,10 @@ in real time.
 
 ## Open / Pending
 - **เสียงดนตรีประกอบ**: ตอนนี้ใช้ URL ภายนอก soundhelix.com (ไม่เชื่อถือได้ production) → รอ Winai สร้างเพลงเสร็จ แล้วนำ MP3 มาวางใน `public/music/` และแก้ URL ใน `present.vue` บรรทัด 487-489 จาก `https://www.soundhelix.com/...` เป็น `/music/track1.mp3` เป็นต้น
+- **Keep-Supabase-alive Action**: ต้องตั้งค่า GitHub repo secrets `SUPABASE_URL`
+  และ `SUPABASE_KEY` (ของ production Supabase project ที่ใช้จริง ไม่ใช่ local
+  127.0.0.1) ใน Settings → Secrets and variables → Actions มิฉะนั้น
+  `.github/workflows/keep-supabase-alive.yml` จะรันแล้ว fail
 
 ## Deployment checklist (Netlify)
 1. สร้าง Supabase project จริง → รัน `supabase/deploy_to_production.sql` ใน SQL Editor
@@ -75,6 +79,12 @@ in real time.
 4. `npm run generate` (หรือ Netlify จะรันให้อัตโนมัติจาก `netlify.toml`)
 
 ## Session log (most recent first)
+- **2026-06-10** — Add "keep Supabase alive" GitHub Action:
+  - `.github/workflows/keep-supabase-alive.yml`: cron `0 0 */3 * *` (ทุก 3 วัน)
+    + `workflow_dispatch` ping `${SUPABASE_URL}/rest/v1/` ด้วย header `apikey`
+    เพื่อกัน production Supabase project free-tier ถูก pause หลัง inactivity
+    ~7 วัน — ใช้ GitHub secrets `SUPABASE_URL` / `SUPABASE_KEY` ของ
+    production project (ดู Open/Pending สำหรับขั้นตอนตั้งค่า)
 - **2026-06-10** — Remove leftover public-signup link on landing page:
   - `index.vue`: ลบ `<NuxtLink to="/register" class="link-text">สมัครบัญชีใหม่สำหรับผู้ควบคุม</NuxtLink>`
     และ CSS `.link-text` ที่ใช้คู่กัน — เป็นจุดที่ตกค้างจากการตัดสินใจ
