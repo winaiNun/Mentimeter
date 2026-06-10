@@ -72,14 +72,18 @@ in real time.
   (ใช้ค่าพวกนี้สำหรับ Netlify env vars และ GitHub Action secrets ด้านล่าง)
 
 ## Open / Pending
-- **Keep-Supabase-alive Action**: ต้องตั้งค่า GitHub repo secrets `SUPABASE_URL`
-  และ `SUPABASE_KEY` ของ project `jjveafzrdnmxkpowagut` (ดูด้านบน) ใน
-  Settings → Secrets and variables → Actions มิฉะนั้น
-  `.github/workflows/keep-supabase-alive.yml` จะรันแล้ว fail
-- **Netlify env vars**: ยังไม่ได้ตั้ง `SUPABASE_URL` / `SUPABASE_KEY` ของ
-  production project ใน Netlify (ดู deployment checklist ข้อ 2)
+- **Keep-Supabase-alive Action**: เพิ่ม secrets `SUPABASE_URL`/`SUPABASE_KEY`
+  แล้วรันครั้งแรก #1 fail ด้วย curl exit 22 (HTTP error, ไม่รู้โค้ดที่แท้จริง)
+  → แก้ workflow ให้ query table `presentations` จริง + print HTTP status/body
+  เพื่อ debug (commit `6195e7d`, push แล้ว) — **ยังไม่ได้รันทดสอบซ้ำ** รอผลรอบหน้า
+  ว่า status code คืออะไร (401=key ผิด, 404=URL ผิด, 42501=RLS)
+- **Netlify env vars**: ยังไม่ยืนยันว่าตั้ง `SUPABASE_URL` / `SUPABASE_KEY` ของ
+  production project ครบหรือยัง (deploy ผ่านแล้วหลังแก้ NODE_VERSION + publish dir
+  เป็น `dist` — แต่ยังไม่ได้ทดสอบว่า login/dashboard ทำงานจริงบน production)
 - **Admin account**: ยังไม่ได้สร้างผ่าน Supabase Dashboard → Authentication → Users
   (deployment checklist ข้อ 3)
+- **ผู้ใช้กำลังจะไปทดสอบจริง** (production site + keep-alive Action) แล้วจะกลับมา
+  ปรับต่อ — เซสชันนี้จบด้วยการ `supabase stop` + หยุด `npm run dev` ตามที่ขอ
 
 ## Deployment checklist (Netlify)
 1. ✅ Schema พร้อมแล้ว — push migrations ทั้ง 4 ไฟล์ขึ้น project `jjveafzrdnmxkpowagut`
@@ -92,6 +96,12 @@ in real time.
 4. `npm run generate` (หรือ Netlify จะรันให้อัตโนมัติจาก `netlify.toml`)
 
 ## Session log (most recent first)
+- **2026-06-10** — Session wrap-up: Netlify deploy fixed end-to-end (Node
+  version + publish dir), DB schema live on production, local music wired up,
+  keep-alive Action added but first run failed (exit 22) — improved workflow
+  diagnostics and pushed, not yet re-tested. User going to test production
+  site live and will come back to iterate. Stopped local Supabase + Nuxt dev
+  server at end of session.
 - **2026-06-10** — Fix Netlify build failure (prerender `/` → 500):
   - **Root cause**: `netlify.toml` had `NODE_VERSION = "20"`, but Nuxt 4.4.7 /
     Nitro / Vite 7 require Node `^22.12.0 || ^24.11.0 || >=26.0.0` (npm
