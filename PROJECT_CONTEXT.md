@@ -102,6 +102,10 @@ in real time.
     `SUPABASE_URL`/`SUPABASE_KEY` as the cause — tried with prod URL + dummy key,
     still built fine locally).
   - **Fix**: `netlify.toml` → `NODE_VERSION = "22"`
+  - **Follow-up**: build then succeeded (9 routes prerendered) but deploy
+    failed — Nitro on Netlify CI emits to `dist/` (not `.output/public/` like
+    local runs), while `netlify.toml` had `publish = ".output/public"`.
+    Fixed: `publish = "dist"`
 - **2026-06-10** — Push DB schema to production Supabase:
   - `supabase login --token <PAT>` (บัญชีเจ้าของ project จริง, คนละบัญชีกับที่
     CLI login ไว้ก่อนหน้า) → `supabase link --project-ref jjveafzrdnmxkpowagut`
