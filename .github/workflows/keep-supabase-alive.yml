@@ -13,6 +13,12 @@ jobs:
     steps:
       - name: Ping Supabase REST API
         run: |
-          curl -sf "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+          status=$(curl -s -o /tmp/body -w "%{http_code}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/presentations?select=id&limit=1" \
             -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-            -o /dev/null
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}")
+          echo "HTTP status: $status"
+          cat /tmp/body
+          if [ "$status" -ge 400 ]; then
+            exit 1
+          fi
