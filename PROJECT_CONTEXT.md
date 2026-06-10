@@ -65,19 +65,52 @@ in real time.
 - Local Supabase via the Supabase CLI in `supabase/` (Studio at 127.0.0.1:54321)
 - `.env` holds `SUPABASE_URL` / `SUPABASE_KEY`, currently pointed at the local instance
 
+## Production Supabase project
+- Project ref: `jjveafzrdnmxkpowagut` — linked via `supabase link` (CLI access
+  token + DB password ได้จากผู้ใช้โดยตรง ไม่ได้เก็บไว้ในไฟล์ใดๆ)
+- ดู URL/anon key จริงได้ที่ Supabase Dashboard → Project Settings → API
+  (ใช้ค่าพวกนี้สำหรับ Netlify env vars และ GitHub Action secrets ด้านล่าง)
+
 ## Open / Pending
 - **Keep-Supabase-alive Action**: ต้องตั้งค่า GitHub repo secrets `SUPABASE_URL`
-  และ `SUPABASE_KEY` (ของ production Supabase project ที่ใช้จริง ไม่ใช่ local
-  127.0.0.1) ใน Settings → Secrets and variables → Actions มิฉะนั้น
+  และ `SUPABASE_KEY` ของ project `jjveafzrdnmxkpowagut` (ดูด้านบน) ใน
+  Settings → Secrets and variables → Actions มิฉะนั้น
   `.github/workflows/keep-supabase-alive.yml` จะรันแล้ว fail
+- **Netlify env vars**: ยังไม่ได้ตั้ง `SUPABASE_URL` / `SUPABASE_KEY` ของ
+  production project ใน Netlify (ดู deployment checklist ข้อ 2)
+- **Admin account**: ยังไม่ได้สร้างผ่าน Supabase Dashboard → Authentication → Users
+  (deployment checklist ข้อ 3)
 
 ## Deployment checklist (Netlify)
-1. สร้าง Supabase project จริง → รัน `supabase/deploy_to_production.sql` ใน SQL Editor
-2. ตั้งค่า env vars ใน Netlify: `SUPABASE_URL`, `SUPABASE_KEY`
+1. ✅ Schema พร้อมแล้ว — push migrations ทั้ง 4 ไฟล์ขึ้น project `jjveafzrdnmxkpowagut`
+   ผ่าน `supabase db push` เรียบร้อย (2026-06-10), ครอบคลุมทุกอย่างใน
+   `supabase/deploy_to_production.sql` รวม RLS + Realtime publication แล้ว —
+   ไม่ต้องรัน SQL ไฟล์นั้นซ้ำอีก
+2. ตั้งค่า env vars ใน Netlify: `SUPABASE_URL`, `SUPABASE_KEY` (ของ project
+   `jjveafzrdnmxkpowagut`)
 3. สร้าง admin account ผ่าน Supabase Dashboard → Authentication → Users
 4. `npm run generate` (หรือ Netlify จะรันให้อัตโนมัติจาก `netlify.toml`)
 
 ## Session log (most recent first)
+- **2026-06-10** — Fix Netlify build failure (prerender `/` → 500):
+  - **Root cause**: `netlify.toml` had `NODE_VERSION = "20"`, but Nuxt 4.4.7 /
+    Nitro / Vite 7 require Node `^22.12.0 || ^24.11.0 || >=26.0.0` (npm
+    EBADENGINE warnings on every dep). Node 20 prerendered `/200.html` /
+    `/404.html` fine but crashed on the first real Vue SSR render (`/`) with
+    an unhandled `[500] Server Error`, failing `nuxt generate`.
+  - Local build with Node v24.11.1 succeeds (reproduced + ruled out bad/missing
+    `SUPABASE_URL`/`SUPABASE_KEY` as the cause — tried with prod URL + dummy key,
+    still built fine locally).
+  - **Fix**: `netlify.toml` → `NODE_VERSION = "22"`
+- **2026-06-10** — Push DB schema to production Supabase:
+  - `supabase login --token <PAT>` (บัญชีเจ้าของ project จริง, คนละบัญชีกับที่
+    CLI login ไว้ก่อนหน้า) → `supabase link --project-ref jjveafzrdnmxkpowagut`
+  - `supabase db push`: apply ทั้ง 4 migrations (init_schema, add_participants,
+    add_slide_started_at, add_quiz_reveal) สำเร็จ — `supabase migration list`
+    ยืนยัน Local/Remote ตรงกันครบ
+  - ตรวจสอบแล้วว่า migrations ครอบคลุม `deploy_to_production.sql` ทั้งหมด
+    (รวม `alter publication supabase_realtime add table ...` ครบ 4 ตาราง)
+    ไม่ต้องรันไฟล์นั้นซ้ำ
 - **2026-06-10** — Background music: switch from soundhelix.com to local MP3s:
   - พบไฟล์เพลงที่ Winai สร้างเสร็จใน `C:\Users\Lenovo\Downloads\` (4 ไฟล์,
     9-10 มิ.ย.) → copy เข้า `public/music/` เป็น `chasing-the-golden-hour.mp3`,
