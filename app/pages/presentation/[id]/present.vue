@@ -484,9 +484,10 @@ const isPlaying = ref(false)
 const isPreviewPlaying = ref(false)
 
 const musicTracks = [
-  { id: 'track1', name: '⚡ Synthwave', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
-  { id: 'track2', name: '🏆 Epic', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3' },
-  { id: 'track3', name: '🍃 Chill', url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3' }
+  { id: 'track1', name: '🌅 Chasing the Golden Hour', url: '/music/chasing-the-golden-hour.mp3' },
+  { id: 'track2', name: '⏱️ The Final Second', url: '/music/the-final-second.mp3' },
+  { id: 'track3', name: '🏔️ The Last Ridge', url: '/music/the-last-ridge.mp3' },
+  { id: 'track4', name: '🏠 The Long Ascent Home', url: '/music/the-long-ascent-home.mp3' }
 ]
 
 // Slide Countdown Timer state
